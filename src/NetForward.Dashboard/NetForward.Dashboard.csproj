@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <Description>NetForward Blazor Server dashboard.</Description>
+    <PackageId>NetForward.Dashboard</PackageId>
+    <RootNamespace>NetForward.Dashboard</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
+    <ProjectReference Include="..\NetForward.Analyzer\NetForward.Analyzer.csproj" />
+    <ProjectReference Include="..\NetForward.Compatibility\NetForward.Compatibility.csproj" />
+    <ProjectReference Include="..\NetForward.Reporting\NetForward.Reporting.csproj" />
+  </ItemGroup>
+</Project>

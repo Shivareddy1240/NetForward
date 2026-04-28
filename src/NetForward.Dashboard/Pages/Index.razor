@@ -1,0 +1,131 @@
+@page "/analyze"
+@page "/"
+@inject ISolutionAnalyzer Analyzer
+
+<PageTitle>Analyze a solution — NetForward</PageTitle>
+
+<section class="panel">
+    <h2>Analyze a solution</h2>
+    <p>Enter the absolute path to a <code>.sln</code> file on this machine and click Analyze.</p>
+
+    <div class="form-row">
+        <input type="text" @bind="_solutionPath" placeholder="C:\src\Legacy.sln" class="path-input" />
+        <button @onclick="RunAnalysisAsync" disabled="@_busy">@(_busy ? "Analyzing..." : "Analyze")</button>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="error">@_error</div>
+    }
+</section>
+
+@if (_result is not null)
+{
+    <section class="panel summary">
+        <div class="score @ScoreClass(_result.ReadinessScore)">
+            <span>@_result.ReadinessScore</span><small>/100</small>
+            <p>Readiness</p>
+        </div>
+        <div class="stat"><span>@_result.ProjectCount</span><p>Projects</p></div>
+        <div class="stat"><span>@_result.TotalIssueCount</span><p>Issues</p></div>
+        <div class="stat warn"><span>@_result.BlockerCount</span><p>Blockers</p></div>
+        <div class="stat"><span>@_result.TotalEffortHours.ToString("F0")h</span><p>Est. effort</p></div>
+    </section>
+
+    <section class="panel">
+        <h3>Projects</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th><th>Type</th><th>Target</th><th>SDK</th>
+                    <th>Issues</th><th>Effort</th><th>Recommended</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var project in _result.Projects)
+                {
+                    <tr>
+                        <td>@project.Name</td>
+                        <td>@project.Type</td>
+                        <td><code>@project.TargetFramework</code></td>
+                        <td>@(project.IsSdkStyle ? "✓" : "—")</td>
+                        <td>@project.Issues.Count</td>
+                        <td>@project.EstimatedEffortHours.ToString("F1")h</td>
+                        <td>@(project.RecommendedTarget ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    @foreach (var project in _result.Projects.Where(p => p.Issues.Count > 0))
+    {
+        <section class="panel">
+            <h3>@project.Name</h3>
+            <ul class="issues">
+                @foreach (var issue in project.Issues.OrderByDescending(i => i.Severity))
+                {
+                    <li class="issue sev-@issue.Severity.ToString().ToLowerInvariant()">
+                        <header>
+                            <code class="id">@issue.Id</code>
+                            <strong>@issue.Title</strong>
+                            <span class="badge">@issue.Severity</span>
+                            <span class="badge cat">@issue.Category</span>
+                            <span class="effort">@issue.EffortHours.ToString("F2")h</span>
+                        </header>
+                        <p>@issue.Description</p>
+                        @if (issue.Recommendation is not null)
+                        {
+                            <blockquote><strong>Recommendation:</strong> @issue.Recommendation</blockquote>
+                        }
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+}
+
+@code {
+    private string _solutionPath = "";
+    private bool _busy;
+    private string? _error;
+    private SolutionAnalysisResult? _result;
+
+    private async Task RunAnalysisAsync()
+    {
+        _error = null;
+        _result = null;
+
+        if (string.IsNullOrWhiteSpace(_solutionPath))
+        {
+            _error = "Enter a solution path.";
+            return;
+        }
+        if (!File.Exists(_solutionPath))
+        {
+            _error = $"File not found: {_solutionPath}";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            _result = await Analyzer.AnalyzeAsync(_solutionPath);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Analysis failed: {ex.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string ScoreClass(int score) => score switch
+    {
+        >= 80 => "good",
+        >= 50 => "warn",
+        _ => "bad"
+    };
+}

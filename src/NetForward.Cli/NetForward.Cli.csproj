@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>NetForward command-line interface.</Description>
+    <PackageId>NetForward.Cli</PackageId>
+    <ToolCommandName>netforward</ToolCommandName>
+    <PackAsTool>true</PackAsTool>
+    <RootNamespace>NetForward.Cli</RootNamespace>
+    <AssemblyName>netforward</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
+    <ProjectReference Include="..\NetForward.Analyzer\NetForward.Analyzer.csproj" />
+    <ProjectReference Include="..\NetForward.Compatibility\NetForward.Compatibility.csproj" />
+    <ProjectReference Include="..\NetForward.Modernizer\NetForward.Modernizer.csproj" />
+    <ProjectReference Include="..\NetForward.Reporting\NetForward.Reporting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+  </ItemGroup>
+</Project>

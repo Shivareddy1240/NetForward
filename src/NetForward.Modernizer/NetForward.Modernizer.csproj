@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>NetForward modernizer: converts legacy .csproj/web.config/packages.config to modern equivalents.</Description>
+    <PackageId>NetForward.Modernizer</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
+    <ProjectReference Include="..\NetForward.Analyzer\NetForward.Analyzer.csproj" />
+  </ItemGroup>
+</Project>

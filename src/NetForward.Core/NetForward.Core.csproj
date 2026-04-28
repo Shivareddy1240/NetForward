@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>NetForward core domain models and abstractions.</Description>
+    <PackageId>NetForward.Core</PackageId>
+  </PropertyGroup>
+</Project>

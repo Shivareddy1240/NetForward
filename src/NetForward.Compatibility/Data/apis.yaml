@@ -1,0 +1,106 @@
+# Legacy API -> modern .NET equivalent.
+# Detected by the Roslyn-based code analyzer (Phase 2). Listed here so reports
+# can flag risky usages even before the rewriter runs.
+
+apis:
+  - legacyFullName: System.Web.HttpContext
+    modernFullName: Microsoft.AspNetCore.Http.HttpContext
+    category: AspNetApi
+    notes: "Static HttpContext.Current is gone. Inject IHttpContextAccessor where needed."
+
+  - legacyFullName: System.Web.HttpRequest
+    modernFullName: Microsoft.AspNetCore.Http.HttpRequest
+    category: AspNetApi
+
+  - legacyFullName: System.Web.HttpResponse
+    modernFullName: Microsoft.AspNetCore.Http.HttpResponse
+    category: AspNetApi
+
+  - legacyFullName: System.Web.HttpServerUtility
+    modernFullName: null
+    category: AspNetApi
+    notes: "Server.MapPath -> IWebHostEnvironment.ContentRootPath. Server.HtmlEncode -> System.Net.WebUtility.HtmlEncode."
+
+  - legacyFullName: System.Web.Mvc.Controller
+    modernFullName: Microsoft.AspNetCore.Mvc.Controller
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Http.ApiController
+    modernFullName: Microsoft.AspNetCore.Mvc.ControllerBase
+    category: AspNetApi
+    notes: "ApiController -> ControllerBase. Decorate with [ApiController] for automatic model validation and parameter binding."
+
+  - legacyFullName: System.Web.Http.IHttpActionResult
+    modernFullName: Microsoft.AspNetCore.Mvc.IActionResult
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Http.HttpResponseException
+    modernFullName: null
+    category: AspNetApi
+    notes: "Throw exceptions or return ProblemDetails via the [ApiController] convention."
+
+  - legacyFullName: System.Web.Mvc.HttpGetAttribute
+    modernFullName: Microsoft.AspNetCore.Mvc.HttpGetAttribute
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Mvc.HttpPostAttribute
+    modernFullName: Microsoft.AspNetCore.Mvc.HttpPostAttribute
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Mvc.RouteAttribute
+    modernFullName: Microsoft.AspNetCore.Mvc.RouteAttribute
+    category: AspNetApi
+
+  - legacyFullName: System.Web.HttpModule
+    modernFullName: null
+    category: AspNetApi
+    notes: "HTTP modules are replaced by middleware. Implement IMiddleware or write an app.Use() delegate in Program.cs."
+
+  - legacyFullName: System.Web.IHttpHandler
+    modernFullName: null
+    category: AspNetApi
+    notes: "HTTP handlers are replaced by endpoint routing or terminal middleware."
+
+  - legacyFullName: System.Web.Security.Membership
+    modernFullName: Microsoft.AspNetCore.Identity.UserManager`1
+    category: Identity
+
+  - legacyFullName: System.Web.Security.Roles
+    modernFullName: Microsoft.AspNetCore.Identity.RoleManager`1
+    category: Identity
+
+  - legacyFullName: System.Web.Security.FormsAuthentication
+    modernFullName: null
+    category: Identity
+    notes: "Forms Authentication is replaced by cookie authentication middleware (AddAuthentication().AddCookie())."
+
+  - legacyFullName: System.Configuration.ConfigurationManager
+    modernFullName: Microsoft.Extensions.Configuration.IConfiguration
+    category: AppConfiguration
+    notes: "appSettings/connectionStrings -> appsettings.json bound via IConfiguration. Inject IConfiguration or IOptions<T>."
+
+  - legacyFullName: System.Web.Configuration.WebConfigurationManager
+    modernFullName: Microsoft.Extensions.Configuration.IConfiguration
+    category: AppConfiguration
+
+  - legacyFullName: System.Data.Entity.DbContext
+    modernFullName: Microsoft.EntityFrameworkCore.DbContext
+    category: EntityFramework
+    notes: "EF6 DbContext -> EF Core DbContext. DbSet shape is unchanged, but configuration moves from OnModelCreating attributes to fluent API or data annotations supported by EF Core."
+
+  - legacyFullName: System.ServiceModel.ServiceHost
+    modernFullName: null
+    category: Wcf
+    notes: "WCF self-hosting is not supported on modern .NET. Consider CoreWCF for SOAP or migrate to gRPC."
+
+  - legacyFullName: System.Web.Mvc.JsonResult
+    modernFullName: Microsoft.AspNetCore.Mvc.JsonResult
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Mvc.ViewResult
+    modernFullName: Microsoft.AspNetCore.Mvc.ViewResult
+    category: AspNetApi
+
+  - legacyFullName: System.Web.Mvc.ActionResult
+    modernFullName: Microsoft.AspNetCore.Mvc.ActionResult
+    category: AspNetApi

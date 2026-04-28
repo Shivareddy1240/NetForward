@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NetForward.Core\NetForward.Core.csproj" />
+    <ProjectReference Include="..\..\src\NetForward.Analyzer\NetForward.Analyzer.csproj" />
+    <ProjectReference Include="..\..\src\NetForward.Compatibility\NetForward.Compatibility.csproj" />
+    <ProjectReference Include="..\..\src\NetForward.Modernizer\NetForward.Modernizer.csproj" />
+    <ProjectReference Include="..\..\src\NetForward.Reporting\NetForward.Reporting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="..\TestAssets\**\*.*">
+      <Link>TestAssets\%(RecursiveDir)%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

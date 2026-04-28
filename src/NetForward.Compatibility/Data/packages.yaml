@@ -1,0 +1,140 @@
+# Legacy NuGet package -> modern .NET equivalent.
+# Contributable without recompiling. Loaded as embedded resource at runtime.
+# Schema:
+#   legacyId:   exact NuGet package id used in .NET Framework projects
+#   modernId:   recommended replacement on modern .NET (null = no direct replacement)
+#   removedInModern: true if no replacement exists in the BCL
+#   category:   one of IssueCategory enum values
+#   notes:      free-text guidance shown in reports
+
+packages:
+  - legacyId: Microsoft.AspNet.Mvc
+    modernId: Microsoft.AspNetCore.Mvc
+    category: AspNetApi
+    notes: "ASP.NET MVC 5 -> ASP.NET Core MVC. Controller base class, routing attributes, and result types are mostly source-compatible after namespace updates."
+
+  - legacyId: Microsoft.AspNet.WebApi
+    modernId: Microsoft.AspNetCore.Mvc
+    category: AspNetApi
+    notes: "Web API 2 controllers fold into ASP.NET Core MVC controllers. ApiController -> ControllerBase. IHttpActionResult -> IActionResult."
+
+  - legacyId: Microsoft.AspNet.WebApi.Core
+    modernId: Microsoft.AspNetCore.Mvc.Core
+    category: AspNetApi
+
+  - legacyId: Microsoft.AspNet.WebApi.Client
+    modernId: System.Net.Http.Json
+    category: AspNetApi
+    notes: "HttpClient extension methods are now in System.Net.Http.Json (built-in)."
+
+  - legacyId: Microsoft.AspNet.WebApi.WebHost
+    modernId: Microsoft.AspNetCore.App
+    category: AspNetApi
+
+  - legacyId: Microsoft.AspNet.WebPages
+    modernId: Microsoft.AspNetCore.Mvc.Razor
+    category: AspNetApi
+
+  - legacyId: Microsoft.AspNet.Razor
+    modernId: Microsoft.AspNetCore.Razor
+    category: AspNetApi
+
+  - legacyId: Microsoft.AspNet.Identity.Core
+    modernId: Microsoft.AspNetCore.Identity
+    category: Identity
+    notes: "ASP.NET Identity -> ASP.NET Core Identity. UserManager, SignInManager APIs are similar but DI registration is different."
+
+  - legacyId: Microsoft.AspNet.Identity.EntityFramework
+    modernId: Microsoft.AspNetCore.Identity.EntityFrameworkCore
+    category: Identity
+
+  - legacyId: Microsoft.AspNet.Identity.Owin
+    modernId: Microsoft.AspNetCore.Identity
+    category: Identity
+    notes: "OWIN middleware integration is replaced by ASP.NET Core's built-in authentication middleware."
+
+  - legacyId: Microsoft.Owin
+    modernId: null
+    removedInModern: true
+    category: AspNetApi
+    notes: "OWIN is replaced by ASP.NET Core's request pipeline. Custom middleware must be rewritten as IMiddleware or app.Use() delegates."
+
+  - legacyId: Microsoft.Owin.Host.SystemWeb
+    modernId: null
+    removedInModern: true
+    category: AspNetApi
+
+  - legacyId: Microsoft.Owin.Security
+    modernId: Microsoft.AspNetCore.Authentication
+    category: Identity
+
+  - legacyId: EntityFramework
+    modernId: Microsoft.EntityFrameworkCore
+    category: EntityFramework
+    notes: "EF6 -> EF Core. DbContext shape is similar but migrations, conventions, and lazy loading behave differently. Test thoroughly."
+
+  - legacyId: System.Data.SqlClient
+    modernId: Microsoft.Data.SqlClient
+    category: PackageReference
+    notes: "System.Data.SqlClient is in maintenance mode. Microsoft.Data.SqlClient is the actively developed replacement."
+
+  - legacyId: Newtonsoft.Json
+    modernId: System.Text.Json
+    category: PackageReference
+    notes: "System.Text.Json is built-in and faster, but has different defaults (camelCase, stricter parsing). Newtonsoft.Json still works on modern .NET if migration is too risky."
+
+  - legacyId: log4net
+    modernId: Microsoft.Extensions.Logging
+    category: Logging
+    notes: "log4net still works but Microsoft.Extensions.Logging is the idiomatic abstraction. Provider packages exist for Serilog, NLog, and log4net itself."
+
+  - legacyId: NLog
+    modernId: Microsoft.Extensions.Logging
+    category: Logging
+    notes: "NLog has a Microsoft.Extensions.Logging provider; the abstraction is preferred over direct NLog calls."
+
+  - legacyId: Autofac
+    modernId: Microsoft.Extensions.DependencyInjection
+    category: DependencyInjection
+    notes: "Built-in DI is sufficient for most apps. Autofac.Extensions.DependencyInjection lets Autofac plug into the modern host if its features are needed."
+
+  - legacyId: Unity
+    modernId: Microsoft.Extensions.DependencyInjection
+    category: DependencyInjection
+    notes: "Unity is in long-term maintenance. Migrate to built-in DI."
+
+  - legacyId: Ninject
+    modernId: Microsoft.Extensions.DependencyInjection
+    category: DependencyInjection
+
+  - legacyId: System.ServiceModel
+    modernId: null
+    removedInModern: true
+    category: Wcf
+    notes: "WCF server hosting is not supported on modern .NET. Use CoreWCF (community port) or migrate to gRPC / minimal APIs."
+
+  - legacyId: Microsoft.AspNet.SignalR
+    modernId: Microsoft.AspNetCore.SignalR
+    category: AspNetApi
+    notes: "SignalR client/server protocols are different between the legacy and Core versions; clients must be updated too."
+
+  - legacyId: WebGrease
+    modernId: null
+    removedInModern: true
+    category: BuildSystem
+    notes: "Bundling/minification is no longer in-framework. Use a frontend build tool (Webpack, Vite, esbuild) or the BuildBundlerMinifier NuGet package."
+
+  - legacyId: Microsoft.AspNet.Web.Optimization
+    modernId: null
+    removedInModern: true
+    category: BuildSystem
+    notes: "BundleConfig is replaced by frontend build tooling or a minifier package."
+
+  - legacyId: Antlr
+    modernId: Antlr4.Runtime.Standard
+    category: PackageReference
+
+  - legacyId: Microsoft.Web.Infrastructure
+    modernId: null
+    removedInModern: true
+    category: AspNetApi
