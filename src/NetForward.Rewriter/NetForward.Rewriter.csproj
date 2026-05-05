@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>NetForward Roslyn-based rewriter: transforms legacy ASP.NET MVC 5 source to ASP.NET Core MVC.</Description>
+    <PackageId>NetForward.Rewriter</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
+    <ProjectReference Include="..\NetForward.Analyzer\NetForward.Analyzer.csproj" />
+    <ProjectReference Include="..\NetForward.Compatibility\NetForward.Compatibility.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Microsoft.Build.Locator: discovers the MSBuild installation on the host machine.
+      Must be initialized BEFORE any Microsoft.Build types are loaded.
+      Microsoft.CodeAnalysis.CSharp.Workspaces: provides MSBuildWorkspace, SyntaxRewriter, SemanticModel.
+    -->
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.9.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+  </ItemGroup>
+</Project>

@@ -65,7 +65,8 @@ public static class Program
         var root = new RootCommand("NetForward — analyze and migrate legacy .NET projects.")
         {
             analyzeCommand,
-            modernizeCommand
+            modernizeCommand,
+            MigrateCommand.Build()
         };
 
         return await root.InvokeAsync(args);

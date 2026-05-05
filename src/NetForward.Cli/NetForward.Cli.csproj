@@ -15,6 +15,8 @@
     <ProjectReference Include="..\NetForward.Compatibility\NetForward.Compatibility.csproj" />
     <ProjectReference Include="..\NetForward.Modernizer\NetForward.Modernizer.csproj" />
     <ProjectReference Include="..\NetForward.Reporting\NetForward.Reporting.csproj" />
+    <ProjectReference Include="..\NetForward.Rewriter\NetForward.Rewriter.csproj" />
+    <ProjectReference Include="..\NetForward.Converters\NetForward.Converters.csproj" />
   </ItemGroup>
 
   <ItemGroup>

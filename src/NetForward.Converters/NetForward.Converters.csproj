@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>NetForward config converters: web.config → appsettings.json, Global.asax → Program.cs scaffold.</Description>
+    <PackageId>NetForward.Converters</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
+  </ItemGroup>
+</Project>
