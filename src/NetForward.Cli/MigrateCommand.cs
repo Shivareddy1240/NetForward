@@ -35,6 +35,10 @@ internal static class MigrateCommand
             name: "--dry-run",
             description: "Show what would change without writing files to disk.");
 
+        var noVerifyOption = new Option<bool>(
+            name: "--no-verify",
+            description: "Skip dotnet build verification after migration.");
+
         var tierOption = new Option<int>(
             name: "--tier",
             getDefaultValue: () => 2,
@@ -49,15 +53,16 @@ internal static class MigrateCommand
         command.AddOption(outputDirOption);
         command.AddOption(suffixOption);
         command.AddOption(dryRunOption);
+        command.AddOption(noVerifyOption);
         command.AddOption(tierOption);
         command.AddOption(verboseOption);
 
         command.SetHandler(
-            async (FileInfo sln, DirectoryInfo outDir, string suffix, bool dryRun, int tier, bool verbose) =>
+            async (FileInfo sln, DirectoryInfo outDir, string suffix, bool dryRun, bool noVerify, int tier, bool verbose) =>
             {
-                Environment.ExitCode = await RunAsync(sln, outDir, suffix, dryRun, tier, verbose);
+                Environment.ExitCode = await RunAsync(sln, outDir, suffix, dryRun, noVerify, tier, verbose);
             },
-            solutionArg, outputDirOption, suffixOption, dryRunOption, tierOption, verboseOption);
+            solutionArg, outputDirOption, suffixOption, dryRunOption, noVerifyOption, tierOption, verboseOption);
 
         return command;
     }
@@ -67,6 +72,7 @@ internal static class MigrateCommand
         DirectoryInfo outputDir,
         string suffix,
         bool dryRun,
+        bool noVerify,
         int tier,
         bool verbose)
     {
@@ -94,6 +100,7 @@ internal static class MigrateCommand
         var options = new RewriteOptions
         {
             DryRun = dryRun,
+            VerifyCompilation = !noVerify && !dryRun,
             OutputRoot = outputDir.FullName,
             OutputSuffix = suffix,
             MaxTier = tier switch
@@ -192,9 +199,14 @@ internal static class MigrateCommand
         foreach (var project in result.Projects)
         {
             Console.WriteLine($"  {project.ProjectName}");
-            Console.WriteLine($"    Modified  : {project.FilesModified}");
-            Console.WriteLine($"    Unchanged : {project.FilesUnchanged}");
-            Console.WriteLine($"    Issues    : {project.RemainingIssueCount}");
+            Console.WriteLine($"    Modified     : {project.FilesModified}");
+            Console.WriteLine($"    Unchanged    : {project.FilesUnchanged}");
+            Console.WriteLine($"    Issues       : {project.RemainingIssueCount}");
+            if (project.CompiledSuccessfully.HasValue)
+            {
+                var buildStatus = project.CompiledSuccessfully.Value ? "PASSED ✓" : $"FAILED ({project.CompileErrors.Count} error(s))";
+                Console.WriteLine($"    Build verify : {buildStatus}");
+            }
 
             if (project.RemainingIssueCount > 0)
             {

@@ -10,5 +10,7 @@
     <ProjectReference Include="..\NetForward.Analyzer\NetForward.Analyzer.csproj" />
     <ProjectReference Include="..\NetForward.Compatibility\NetForward.Compatibility.csproj" />
     <ProjectReference Include="..\NetForward.Reporting\NetForward.Reporting.csproj" />
+    <ProjectReference Include="..\NetForward.Rewriter\NetForward.Rewriter.csproj" />
+    <ProjectReference Include="..\NetForward.Converters\NetForward.Converters.csproj" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,233 @@
+@page "/migrate"
+
+<PageTitle>Migrate — NetForward</PageTitle>
+
+<section class="panel">
+    <h2>Migrate a solution</h2>
+    <p>
+        Runs all Tier 1 and Tier 2 rewrite rules against every MVC/Web API project
+        in the solution. Output is written side-by-side — the original is never touched.
+    </p>
+
+    <div class="form-row">
+        <input type="text" @bind="_solutionPath"
+               placeholder="C:\src\Legacy.sln" class="path-input" />
+        <input type="text" @bind="_outputRoot"
+               placeholder="Output root (blank = side-by-side)"
+               class="path-input path-input--secondary" />
+    </div>
+
+    <div class="form-row form-row--options">
+        <label class="checkbox-label">
+            <input type="checkbox" @bind="_dryRun" /> Dry run (no files written)
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" @bind="_verifyBuild" /> Verify build after migration
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" @bind="_tier1Only" /> Tier 1 rules only (safest)
+        </label>
+    </div>
+
+    <div class="form-row">
+        <button @onclick="RunMigrationAsync" disabled="@_busy">
+            @(_busy ? "Migrating..." : (_dryRun ? "Dry Run" : "Migrate"))
+        </button>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="error">@_error</div>
+    }
+</section>
+
+@if (_result is not null)
+{
+    <section class="panel summary">
+        <div class="stat @(_result.IsDryRun ? "stat--dry" : "")">
+            <span>@(_result.IsDryRun ? "DRY" : "DONE")</span>
+            <p>Mode</p>
+        </div>
+        <div class="stat"><span>@_result.Projects.Count</span><p>Projects</p></div>
+        <div class="stat"><span>@_result.TotalFilesModified</span><p>Modified</p></div>
+        <div class="stat"><span>@_result.TotalFilesUnchanged</span><p>Unchanged</p></div>
+        <div class="stat @(_result.TotalRemainingIssues > 0 ? "stat--warn" : "")">
+            <span>@_result.TotalRemainingIssues</span><p>Issues</p>
+        </div>
+    </section>
+
+    @foreach (var project in _result.Projects)
+    {
+        <section class="panel">
+            <h3>
+                @project.ProjectName
+                @if (project.CompiledSuccessfully.HasValue)
+                {
+                    <span class="build-badge @(project.CompiledSuccessfully.Value ? "build-badge--pass" : "build-badge--fail")">
+                        @(project.CompiledSuccessfully.Value
+                            ? "Build ✓"
+                            : $"Build ✗ ({project.CompileErrors.Count} error(s))")
+                    </span>
+                }
+            </h3>
+
+            <dl class="facts">
+                <dt>Output</dt><dd><code>@project.OutputDirectory</code></dd>
+                <dt>Modified</dt><dd>@project.FilesModified file(s)</dd>
+                <dt>Unchanged</dt><dd>@project.FilesUnchanged file(s)</dd>
+                <dt>Issues</dt><dd>@project.RemainingIssueCount</dd>
+            </dl>
+
+            @if (project.Files.Any(f => f.Transformations.Count > 0))
+            {
+                <details>
+                    <summary>
+                        Transformations applied
+                        (@project.Files.Sum(f => f.Transformations.Count))
+                    </summary>
+                    <ul class="transform-list">
+                        @foreach (var file in project.Files.Where(f => f.WasModified))
+                        {
+                            <li>
+                                <code class="filepath">@Path.GetFileName(file.OriginalPath)</code>
+                                <ul>
+                                    @foreach (var t in file.Transformations)
+                                    {
+                                        <li>
+                                            <span class="rule-id">@t.RuleId</span>
+                                            @t.Description
+                                            @if (t.LineNumber.HasValue)
+                                            {
+                                                <span class="line-num">line @t.LineNumber</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                </details>
+            }
+
+            @if (project.RemainingIssueCount > 0)
+            {
+                <h4>Remaining issues requiring manual attention</h4>
+                <ul class="issues">
+                    @foreach (var issue in project.Files
+                        .SelectMany(f => f.RemainingIssues)
+                        .OrderByDescending(i => i.Severity))
+                    {
+                        <li class="issue sev-@issue.Severity.ToString().ToLowerInvariant()">
+                            <header>
+                                <code class="id">@issue.Id</code>
+                                <strong>@issue.Title</strong>
+                                <span class="badge">@issue.Severity</span>
+                                <span class="effort">@issue.EffortHours.ToString("F1")h</span>
+                            </header>
+                            <p>@issue.Description</p>
+                            @if (issue.FilePath is not null)
+                            {
+                                <p class="path">
+                                    <code>@issue.FilePath</code>
+                                    @(issue.LineNumber.HasValue ? $":{issue.LineNumber}" : "")
+                                </p>
+                            }
+                            @if (issue.Recommendation is not null)
+                            {
+                                <blockquote><strong>Fix:</strong> @issue.Recommendation</blockquote>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if (project.CompileErrors.Count > 0)
+            {
+                <h4>Compile errors</h4>
+                <ul class="issues">
+                    @foreach (var err in project.CompileErrors)
+                    {
+                        <li class="issue sev-error">
+                            <header>
+                                <code class="id">@err.Id</code>
+                                <strong>@err.Title</strong>
+                            </header>
+                            @if (err.FilePath is not null)
+                            {
+                                <p class="path">
+                                    <code>@err.FilePath</code>
+                                    @(err.LineNumber.HasValue ? $":{err.LineNumber}" : "")
+                                </p>
+                            }
+                            @if (err.Recommendation is not null)
+                            {
+                                <blockquote>@err.Recommendation</blockquote>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+@code {
+    private string _solutionPath = "";
+    private string _outputRoot = "";
+    private bool _dryRun = true;
+    private bool _verifyBuild = true;
+    private bool _tier1Only;
+    private bool _busy;
+    private string? _error;
+    private NetForward.Core.Models.MigrationResult? _result;
+
+    private async Task RunMigrationAsync()
+    {
+        _error = null;
+        _result = null;
+
+        if (string.IsNullOrWhiteSpace(_solutionPath))
+        {
+            _error = "Enter a solution path.";
+            return;
+        }
+        if (!File.Exists(_solutionPath))
+        {
+            _error = $"File not found: {_solutionPath}";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            NetForward.Rewriter.Workspace.MSBuildWorkspaceLoader.EnsureInitialized();
+
+            var options = new NetForward.Rewriter.Pipeline.RewriteOptions
+            {
+                DryRun = _dryRun,
+                VerifyCompilation = _verifyBuild && !_dryRun,
+                OutputRoot = string.IsNullOrWhiteSpace(_outputRoot)
+                    ? Path.Combine(
+                        Path.GetDirectoryName(_solutionPath)!,
+                        "netforward-migrated")
+                    : _outputRoot,
+                MaxTier = _tier1Only
+                    ? NetForward.Rewriter.Pipeline.RewriteTier.Tier1
+                    : NetForward.Rewriter.Pipeline.RewriteTier.Tier2
+            };
+
+            var catalog = new NetForward.Compatibility.YamlCompatibilityCatalog();
+            var pipeline = NetForward.Rewriter.Pipeline.RewriterFactory.CreateDefault(catalog);
+
+            _result = await pipeline.MigrateSolutionAsync(_solutionPath, options);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Migration failed: {ex.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

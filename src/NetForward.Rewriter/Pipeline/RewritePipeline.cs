@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NetForward.Core.Abstractions;
+using NetForward.Rewriter.Verification;
 using NetForward.Core.Models;
 using NetForward.Rewriter.Workspace;
 
@@ -118,7 +119,7 @@ public sealed class RewritePipeline
             fileResults.Count(f => !f.WasModified),
             fileResults.Sum(f => f.RemainingIssues.Count));
 
-        return new ProjectRewriteResult
+        var projectResult = new ProjectRewriteResult
         {
             ProjectName = roslynProject.Name,
             OriginalProjectPath = roslynProject.FilePath ?? "",
@@ -126,6 +127,24 @@ public sealed class RewritePipeline
             Files = fileResults,
             ProjectLevelIssues = projectIssues
         };
+
+        // Run compilation verification unless dry-run or disabled.
+        if (!options.DryRun && options.VerifyCompilation)
+        {
+            var verifier = new MigrationCompilationVerifier(
+                _logger as ILogger<MigrationCompilationVerifier>);
+            var buildResult = await verifier.VerifyAsync(
+                outputDirectory, cancellationToken);
+
+            projectResult = projectResult with
+            {
+                CompiledSuccessfully = buildResult.Succeeded,
+                CompilerOutput = buildResult.RawOutput,
+                CompileErrors = buildResult.Diagnostics
+            };
+        }
+
+        return projectResult;
     }
 
     private async Task<FileRewriteResult> RewriteDocumentAsync(

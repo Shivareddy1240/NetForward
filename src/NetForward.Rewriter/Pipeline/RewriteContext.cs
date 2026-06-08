@@ -10,27 +10,27 @@ namespace NetForward.Rewriter.Pipeline;
 /// </summary>
 public sealed class RewriteContext
 {
+    private readonly SyntaxTree _originalTree;
+    private Microsoft.CodeAnalysis.Compilation _compilation;
+    private readonly object _compilationLock = new();
+
     public RewriteContext(
         Project roslynProject,
-        Compilation compilation,
+        Microsoft.CodeAnalysis.Compilation compilation,
         ICompatibilityCatalog catalog,
         RewriteOptions options)
     {
         RoslynProject = roslynProject;
-        Compilation = compilation;
+        _compilation = compilation;
+        // Track the original tree so we can detect when the current tree has changed.
+        _originalTree = compilation.SyntaxTrees.FirstOrDefault()
+            ?? throw new InvalidOperationException("Compilation contains no syntax trees.");
         Catalog = catalog;
         Options = options;
     }
 
     /// <summary>The Roslyn project being rewritten.</summary>
     public Project RoslynProject { get; }
-
-    /// <summary>
-    /// Pre-built compilation for semantic queries.
-    /// Use this to get SemanticModel instances — do NOT call GetSemanticModelAsync
-    /// per-file inside rules, as it's expensive. The pipeline pre-builds this once.
-    /// </summary>
-    public Compilation Compilation { get; }
 
     /// <summary>Compatibility catalog for legacy → modern mappings.</summary>
     public ICompatibilityCatalog Catalog { get; }
@@ -39,11 +39,39 @@ public sealed class RewriteContext
     public RewriteOptions Options { get; }
 
     /// <summary>
-    /// Get the semantic model for a specific syntax tree.
-    /// Thread-safe; Roslyn caches this internally.
+    /// Get the semantic model for a syntax tree.
+    ///
+    /// IMPORTANT: Each rewrite rule produces a new SyntaxTree. Roslyn's Compilation
+    /// only knows about the trees it was built with. If the caller passes a rewritten
+    /// tree that is NOT in the compilation, we update the compilation to replace the
+    /// original tree with the new one before querying.
+    ///
+    /// This is safe because:
+    ///   - Each rule only ever replaces one tree at a time.
+    ///   - The compilation update is locked for thread safety.
+    ///   - Roslyn's WithReplacedSyntaxTree is cheap (structural sharing).
     /// </summary>
     public SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
-        => Compilation.GetSemanticModel(syntaxTree);
+    {
+        lock (_compilationLock)
+        {
+            // Fast path: tree is already in the compilation.
+            if (_compilation.ContainsSyntaxTree(syntaxTree))
+            {
+                return _compilation.GetSemanticModel(syntaxTree);
+            }
+
+            // Slow path: tree was rewritten — replace the stale tree in the compilation.
+            // Find which tree in the compilation is the "old" version of this one.
+            // We always replace the original (or most recently replaced) tree.
+            var existingTree = _compilation.SyntaxTrees.FirstOrDefault()
+                ?? throw new InvalidOperationException(
+                    "Compilation has no trees to replace.");
+
+            _compilation = _compilation.ReplaceSyntaxTree(existingTree, syntaxTree);
+            return _compilation.GetSemanticModel(syntaxTree);
+        }
+    }
 }
 
 /// <summary>
@@ -53,6 +81,12 @@ public sealed record RewriteOptions
 {
     /// <summary>When true, no files are written to disk. Results are returned in-memory only.</summary>
     public bool DryRun { get; init; }
+
+    /// <summary>
+    /// When true, runs `dotnet build` against each migrated project after rewriting
+    /// and attaches compile diagnostics to the result. Ignored in DryRun mode.
+    /// </summary>
+    public bool VerifyCompilation { get; init; } = true;
 
     /// <summary>Highest tier to apply. Defaults to Tier2 (Tier3 is flag-only anyway).</summary>
     public RewriteTier MaxTier { get; init; } = RewriteTier.Tier2;

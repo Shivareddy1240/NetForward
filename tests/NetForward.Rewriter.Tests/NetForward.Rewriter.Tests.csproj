@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\NetForward.Compatibility\NetForward.Compatibility.csproj" />
     <ProjectReference Include="..\..\src\NetForward.Rewriter\NetForward.Rewriter.csproj" />
     <ProjectReference Include="..\..\src\NetForward.Converters\NetForward.Converters.csproj" />
+    <ProjectReference Include="..\NetForward.Tests\NetForward.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

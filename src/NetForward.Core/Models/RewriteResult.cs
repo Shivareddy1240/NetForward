@@ -70,6 +70,18 @@ public sealed record ProjectRewriteResult
 
     /// <summary>Issues raised during rewriting that are not attributable to a single file.</summary>
     public IReadOnlyList<MigrationIssue> ProjectLevelIssues { get; init; } = [];
+
+    /// <summary>
+    /// True if dotnet build succeeded on the migrated output. Null if verification
+    /// was skipped (dry-run mode or VerifyCompilation=false).
+    /// </summary>
+    public bool? CompiledSuccessfully { get; init; }
+
+    /// <summary>Raw compiler output from the verification step.</summary>
+    public string? CompilerOutput { get; init; }
+
+    /// <summary>Compile errors raised during the verification step.</summary>
+    public IReadOnlyList<MigrationIssue> CompileErrors { get; init; } = [];
 }
 
 /// <summary>

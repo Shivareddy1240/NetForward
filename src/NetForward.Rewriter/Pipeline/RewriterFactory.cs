@@ -6,15 +6,11 @@ namespace NetForward.Rewriter.Pipeline;
 
 /// <summary>
 /// Builds a fully configured <see cref="RewritePipeline"/> with all rules registered.
-///
-/// Rules are registered here in a single place. Adding a Phase 2+ rule is a
-/// one-line change in this file — no pipeline logic needs to change.
+/// Rules are applied in tier order, then by ID within each tier.
+/// Adding a new rule is a one-line change here — no pipeline logic changes.
 /// </summary>
 public static class RewriterFactory
 {
-    /// <summary>
-    /// Build a pipeline with all currently implemented rules.
-    /// </summary>
     public static RewritePipeline CreateDefault(
         ICompatibilityCatalog catalog,
         ILoggerFactory? loggerFactory = null)
@@ -26,17 +22,17 @@ public static class RewriterFactory
             new R002ControllerBaseRewriter(),
             new R003ActionResultRewriter(),
 
-            // === Tier 1 — Sprint 2 (uncomment as implemented) ===
-            // new R004AttributeConversionRewriter(),
-            // new R005RouteAttributeRewriter(),
-            // new R006IHttpActionResultRewriter(),
+            // === Tier 1 — Sprint 2 ===
+            new R004AttributeConversionRewriter(),
+            new R005RoutePrefixRewriter(),
+            new R006IHttpActionResultRewriter(),
 
             // === Tier 2 — Sprint 3 ===
-            // new R007DependencyInjectionRewriter(),
-            // new R008HttpContextRewriter(),
-            // new R009ModelBindingRewriter(),
+            new R007DependencyInjectionRewriter(),
+            new R008HttpContextRewriter(),
+            new R009ModelBindingRewriter(),
 
-            // === Tier 3 — Sprint 4 (flag-only) ===
+            // === Tier 3 — Sprint 4 (flag-only advisors, planned) ===
             // new R010ActionFilterAdvisor(),
             // new R011HttpModuleAdvisor(),
         };
