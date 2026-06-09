@@ -1,13 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Description>NetForward command-line interface.</Description>
+    <Description>NetForward CLI — analyze and migrate legacy .NET Framework solutions to modern .NET 8.</Description>
     <PackageId>NetForward.Cli</PackageId>
     <ToolCommandName>netforward</ToolCommandName>
     <PackAsTool>true</PackAsTool>
     <RootNamespace>NetForward.Cli</RootNamespace>
     <AssemblyName>netforward</AssemblyName>
+
+    <!-- NuGet package metadata -->
+    <Title>NetForward CLI</Title>
+    <PackageTags>dotnet;migration;legacy;aspnetcore;roslyn;codemod</PackageTags>
+    <PackageProjectUrl>https://github.com/your-org/netforward</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/your-org/netforward</RepositoryUrl>
+    <PackageReleaseNotes>Phase 2 complete: Roslyn rewriter with 11 rules (R001-R011), config converters, compilation verifier, migrate command.</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NetForward.Core\NetForward.Core.csproj" />
